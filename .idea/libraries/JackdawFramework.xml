@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="JackdawFramework">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../JackDawFramework/out/artifacts/JackdawFramework/JackdawFramework.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../JackDawFramework/out/artifacts/JackdawFramework/JackDawFramework.zip!/JackDawFramework/src/main/java" />
+    </SOURCES>
+  </library>
+</component>
