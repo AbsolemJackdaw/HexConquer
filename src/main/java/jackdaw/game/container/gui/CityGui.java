@@ -10,6 +10,11 @@ import java.awt.*;
 
 public class CityGui extends BufferedContainer {
 
+    Rectangle zoneForSlots = new Rectangle((int) originX, (int) originY, (int) (getWidth() * 0.60), (int) (getHeight() * 0.70));
+    Rectangle zoneForKnights = new Rectangle((int) originX, (int) originY + 1 + (int) (getHeight() * 0.70), (int) (getWidth() * 0.60), (int) (getHeight() * 0.30));
+    Rectangle zoneForButton = new Rectangle((int) originX + (int) (getWidth() * 0.60), (int) originY, (int) (getWidth() * 0.40), (int) (getHeight() * 0.15));
+    Rectangle zoneforCards = new Rectangle((int) originX + (int) (getWidth() * 0.60), (int) originY + (int) (getHeight() * 0.15), (int) (getWidth() * 0.40), (int) (getHeight() * 0.85));
+
     public CityGui(GameState state, int width, int height) {
         super(state, width, height);
 
@@ -21,11 +26,6 @@ public class CityGui extends BufferedContainer {
         g.setColor(new Color(50, 50, 50, 230));
         g.fill(Level.viewPort);
         g.drawImage(TexLoader.CITY_GUI, (int) originX, (int) originY, getWidth(), getHeight(), null);
-
-        Rectangle zoneForSlots = new Rectangle((int) originX, (int) originY, (int) (getWidth() * 0.60), (int) (getHeight() * 0.70));
-        Rectangle zoneForKnights = new Rectangle((int) originX, (int) originY + 1 + (int) (getHeight() * 0.70), (int) (getWidth() * 0.60), (int) (getHeight() * 0.30));
-        Rectangle zoneForButton = new Rectangle((int) originX+(int) (getWidth() * 0.60), (int) originY, (int) (getWidth() * 0.40), (int) (getHeight() * 0.15));
-        Rectangle zoneforCards = new Rectangle((int) originX+(int) (getWidth() * 0.60), (int) originY+(int) (getHeight() * 0.15), (int) (getWidth() * 0.40), (int) (getHeight() * 0.85));
 
         g.setColor(new Color(50, 50, 50, 230));
         g.fill(zoneForSlots);

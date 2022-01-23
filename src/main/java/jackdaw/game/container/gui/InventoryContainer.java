@@ -22,14 +22,14 @@ public class InventoryContainer extends BufferedContainer {
         setOrigin(0, 0);
 
         for (Material value : Material.values()) {
-            if (!value.equals(Material.GOLD)) {
+            if (value.isSellable()) {
                 int y = (1 + value.ordinal()) * font.getSize();
                 buttons.add(new SellButton(getWidth() - font.getSize() * 4, y + generalOffset, value, b -> {
                     if (b instanceof SellButton sell) {
                         MatStack pay = new MatStack(sell.material, 4);
                         if (level.player.canPay(pay)) {
                             level.player.substractWith(pay);
-                            level.player.collect(Material.GOLD,1);
+                            level.player.collect(Material.GOLD, 1);
                         }
                     }
                 }));
@@ -39,7 +39,7 @@ public class InventoryContainer extends BufferedContainer {
                         MatStack pay = new MatStack(Material.GOLD, 2); //TODO take values out of trade bonuses
                         if (level.player.canPay(pay)) {
                             level.player.substractWith(pay);
-                            level.player.collect(sell.material,1);
+                            level.player.collect(sell.material, 1);
                         }
                     }
                 }));
@@ -65,6 +65,8 @@ public class InventoryContainer extends BufferedContainer {
 
         int index = 2;
         for (Material value : Material.values()) {
+            if (!value.isSellable() && value != Material.GOLD)
+                continue;
             MatStack stack = level.player.getStackInSlot(value);
             String info = String.format("%-7s: %d", value.name().toLowerCase(), stack != null ? stack.getAmmount() : 0);
             g.drawString(info, generalOffset, index++ * font.getSize());

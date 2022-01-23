@@ -18,7 +18,8 @@ public class TexLoader extends LoadState {
     public static BufferedImage WATER_HEX;
 
     public static BufferedImage CITY;
-    public static BufferedImage CITY_TRANSPARENT;
+    public static BufferedImage VILLAGE_TRANSPARENT;
+    public static BufferedImage VILLAGE;
     public static BufferedImage ROAD;
     public static BufferedImage CROSSING;
 
@@ -59,7 +60,8 @@ public class TexLoader extends LoadState {
         WATER_HEX = ImageLoader.loadSprite(new ResourceLocation("/jackdaw/hex/water.png"));
 
         CITY = ImageLoader.loadSprite(new ResourceLocation("/jackdaw/build/city.png"));
-        CITY_TRANSPARENT = ImageLoader.loadSprite(new ResourceLocation("/jackdaw/build/city_transparent.png"));
+        VILLAGE_TRANSPARENT = ImageLoader.loadSprite(new ResourceLocation("/jackdaw/build/village_transparent.png"));
+        VILLAGE = ImageLoader.loadSprite(new ResourceLocation("/jackdaw/build/village.png"));
         ROAD = ImageLoader.loadSprite(new ResourceLocation("/jackdaw/build/road.png"));
         CROSSING = ImageLoader.loadSprite(new ResourceLocation("/jackdaw/build/crossing.png"));
 

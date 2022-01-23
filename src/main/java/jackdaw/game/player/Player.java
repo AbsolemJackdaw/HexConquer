@@ -8,11 +8,21 @@ public class Player {
 
     private MatStack[] inventory = new MatStack[Material.values().length];
     private DayCycleEvent.NOONEVENTS currentNoonEvent = DayCycleEvent.NOONEVENTS.NONE;
+    private String name;
 
-    public Player() {
+    public Player(String name) {
+        this.name = name;
         for (Material mat : Material.values()) {
-            if (mat != Material.GOLD)
-                addWith(new MatStack(mat, 15));
+            if (mat.isSellable())
+                addWith(new MatStack(mat, 100));
+        }
+    }
+
+    public void initInventory() {
+        inventory = new MatStack[Material.values().length];
+        for (Material mat : Material.values()) {
+            if (mat.isSellable())
+                addWith(new MatStack(mat, 5));
         }
     }
 
@@ -78,5 +88,9 @@ public class Player {
 
     public void setCurrentNoonEvent(DayCycleEvent.NOONEVENTS currentNoonEvent) {
         this.currentNoonEvent = currentNoonEvent;
+    }
+
+    public String getName() {
+        return name;
     }
 }

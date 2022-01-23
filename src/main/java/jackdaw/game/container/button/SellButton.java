@@ -18,7 +18,7 @@ public class SellButton extends Button {
 
     @Override
     public void draw(Graphics2D g) {
-        if (box.x >= 250)
+        if (box.x >= Window.getGameScale(250))
             g.setColor(new Color(20, 50, 20, 150));
         else
             g.setColor(new Color(20, 20, 50, 150));

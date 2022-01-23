@@ -4,7 +4,6 @@ import jackdaw.game.map.level.PlainHex;
 import jackdaw.game.resources.MatStack;
 import jackdaw.game.resources.Material;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
 
@@ -13,26 +12,12 @@ public class DayCycleEvent {
 
     public void rollDay(Level level, Collection<PlainHex> plains) {
         DAWNEVENTS event = rand.nextInt(10) == 0 ? rand.nextBoolean() ? DAWNEVENTS.GOODYEAR : DAWNEVENTS.BLACKDEATH : DAWNEVENTS.NONE;
-//        int pic, pick, pik;
-//        pick = pic = pik = rand.nextInt(Material.values().length);
-//        while (pic == pick || pik == pick) {
-//            if (pic == pick)
-//                pic = rand.nextInt(Material.values().length);
-//            if (pik == pick)
-//                pik = rand.nextInt(Material.values().length);
-//        }
-//        ArrayList<Material> check = new ArrayList<>();
-//        check.add(Material.values()[pic]);
-//        check.add(Material.values()[pick]);
-//        check.add(Material.values()[pik]);
-        plains.
-                //stream().filter(plainHex -> plainHex.getMaterial() != null && check.contains(plainHex.getMaterial())).
-                forEach(plainHex -> plainHex.getTrackingCities().forEach(city -> {
-                    if (city.getOwner() != null) {
-                        level.getPlayerByName(city.getOwner()).ifPresent(p -> p.collect(plainHex.getMaterial(), city.getResourceMultiplier(plainHex.getMaterial()) * event.multiplier));
-                        city.setCurrentDayEvent(event);
-                    }
-                }));
+        plains.forEach(plainHex -> plainHex.getTrackingCities().forEach(city -> {
+            if (city.getOwner() != null && plainHex.getMaterial() != Material.NONE) {
+                level.getPlayerByName(city.getOwner()).ifPresent(p -> p.collect(plainHex.getMaterial(), city.getResourceMultiplier(plainHex.getMaterial()) * event.multiplier));
+                city.setCurrentDayEvent(event);
+            }
+        }));
     }
 
     public void startGame(Level level, Collection<PlainHex> plains) {

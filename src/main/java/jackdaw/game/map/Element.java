@@ -9,9 +9,9 @@ public abstract class Element {
     public Level level;
     private String owner;
 
-    public Element(Level level, double x, double y) {
+    public Element(Level level, Coord coord) {
         this.level = level;
-        this.absolutePosition = new Coord(x, y);
+        this.absolutePosition = coord;
     }
 
     public abstract void update();

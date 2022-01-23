@@ -9,37 +9,40 @@ import jackdaw.game.container.gui.CityGui;
 import jackdaw.game.map.Coord;
 import jackdaw.game.map.GuiAble;
 import jackdaw.game.map.Hover;
+import jackdaw.game.player.Player;
 import jackdaw.game.resources.MatStack;
 import jackdaw.game.resources.Material;
 
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
+import java.awt.image.BufferedImage;
 import java.util.Collection;
 import java.util.Objects;
 
 public class CitySpot extends PlaceableElement implements GuiAble {
+    public final Rectangle imageSpace;
     private final Shape boundingBox;
-    private final Rectangle imageSpace;
     private boolean hasBuildRoadNode;
+    private boolean isCity = false;
 
     private DayCycleEvent.DAWNEVENTS currentDayEvent = DayCycleEvent.DAWNEVENTS.NONE;
 
-    public CitySpot(Level level, double posX, double posY) {
-        super(level, posX, posY);
+    public CitySpot(Level level, Coord coord) {
+        super(level, coord);
         int size = (int) (15 * Window.getScale());
-        boundingBox = new Ellipse2D.Double((int) posX - size / 2f, (int) posY - size / 2f, size, size);
+        boundingBox = new Ellipse2D.Double(coord.posX() - size / 2f, coord.posY() - size / 2f, size, size);
         size = (int) (16 * Window.getScale());
-        imageSpace = new Rectangle(getPosition().getPosX() - (int) (size * 2.5), (int) (getPosition().posY() - size * 3.0), size * 5, size * 5);
+        imageSpace = new Rectangle(getPosition().posX() - (int) (size * 2.5), (int) (getPosition().posY() - size * 3.0), size * 5, size * 5);
     }
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof CitySpot intersection && intersection.getPosition().equals(getPosition());
+        return o instanceof CitySpot node && node.getPosition().equals(getPosition());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getPosition().getPosX(), getPosition().getPosY());
+        return Objects.hash(getPosition().posX(), getPosition().posY());
     }
 
     @Override
@@ -57,7 +60,7 @@ public class CitySpot extends PlaceableElement implements GuiAble {
         if (canBuy()) {
             level.getPlayerByName(buyer).ifPresent(player -> {
                 if (player.canPay(cost())) {
-                    purchasePlot(buyer);
+                    purchasePlot(player);
                     for (MatStack matStack : cost()) {
                         player.substractWith(matStack);
                     }
@@ -66,17 +69,18 @@ public class CitySpot extends PlaceableElement implements GuiAble {
         }
     }
 
-    public void purchasePlot(String buyer) {
+    public void purchasePlot(Player buyer) {
         bought = true;
         level.exploitSurrounds(this);
-        this.setOwner(buyer);
+        this.setOwner(buyer.getName());
     }
 
     @Override
     public void draw(Graphics2D g) {
         if (bought) {
             g.setClip(imageSpace);
-            g.drawImage(TexLoader.CITY, imageSpace.x, imageSpace.y, imageSpace.width, imageSpace.height, null);
+            BufferedImage img = isCity ? TexLoader.CITY : TexLoader.VILLAGE;
+            g.drawImage(img, imageSpace.x, imageSpace.y, imageSpace.width, imageSpace.height, null);
 
             switch (currentDayEvent) {
                 case GOODYEAR -> g.drawImage(TexLoader.GOODYEAR, imageSpace.x + imageSpace.width / 4, imageSpace.y, imageSpace.width / 2, imageSpace.height / 2, null);
@@ -88,8 +92,12 @@ public class CitySpot extends PlaceableElement implements GuiAble {
             g.setClip(getBoundingBox());
             g.fill(getBoundingBox());
         }
-        g.setClip(0, 0, Window.getWidth(), Window.getHeight());
+        g.setClip(Level.viewPort);
 
+//        g.setColor(Color.green);
+//        g.setClip(getBoundingBox());
+//        g.fill(getBoundingBox());
+//        g.setClip(Level.viewPort);
     }
 
     public void attachRoad() {
@@ -138,7 +146,7 @@ public class CitySpot extends PlaceableElement implements GuiAble {
         return new Hover(theSuper).withDraw(g -> {
             Rectangle s = level.getRelativeShape(imageSpace);
             if (canBuy()) {
-                g.drawImage(TexLoader.CITY_TRANSPARENT, s.x, s.y, s.width, s.height, null);
+                g.drawImage(TexLoader.VILLAGE_TRANSPARENT, s.x, s.y, s.width, s.height, null);
             } else if (bought) {
                 g.drawImage(TexLoader.CITY_POP, s.x + s.width / 4, s.y + s.height / 4, s.width / 2, s.height / 2, null);
             }
@@ -158,5 +166,9 @@ public class CitySpot extends PlaceableElement implements GuiAble {
 
     public void setCurrentDayEvent(DayCycleEvent.DAWNEVENTS currentDayEvent) {
         this.currentDayEvent = currentDayEvent;
+    }
+
+    public void upgrade() {
+        isCity = true;
     }
 }
