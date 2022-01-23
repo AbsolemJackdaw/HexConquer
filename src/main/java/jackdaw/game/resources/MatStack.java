@@ -1,6 +1,6 @@
-package jackdaw.game.player;
+package jackdaw.game.resources;
 
-import jackdaw.game.resources.Material;
+import jackdaw.game.container.DrawProvider;
 
 public class MatStack {
     Material mat;
@@ -38,6 +38,15 @@ public class MatStack {
     }
 
     public void updateAmount(int amount) {
-        this.ammount += amount;
+        int result = this.ammount + amount;
+        this.ammount = Math.max(result, 0);
+    }
+
+    public DrawProvider draw(int x, int y, int size) {
+        return g ->
+        {
+            for (int i = 0; i < ammount; i++)
+                g.drawImage(mat.texture, (int) (5 + x + size / 1.2d * i), y, size, size, null);
+        };
     }
 }

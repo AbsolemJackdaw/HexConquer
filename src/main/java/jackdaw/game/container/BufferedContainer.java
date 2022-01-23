@@ -1,9 +1,11 @@
 package jackdaw.game.container;
 
 import framework.GameState;
+import jackdaw.game.container.button.Button;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Random;
 
 public abstract class BufferedContainer extends BufferedImage {
@@ -11,6 +13,7 @@ public abstract class BufferedContainer extends BufferedImage {
     static final Random rand = new Random();
     protected final GameState state; //the gamestate this container is in;
     public double originX, originY;
+    protected ArrayList<Button> buttons = new ArrayList<>();
     private double cachedX, cachedY;
 
     public BufferedContainer(GameState state, int width, int height) {

@@ -1,4 +1,4 @@
-package jackdaw.game.plane;
+package jackdaw.game.resources;
 
 public enum PlainType {
     WOODS((byte) 10),

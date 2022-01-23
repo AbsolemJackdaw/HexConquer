@@ -1,19 +1,19 @@
-package jackdaw.game.container;
+package jackdaw.game.container.gui;
 
 import framework.window.Window;
 import jackdaw.game.Level;
+import jackdaw.game.container.BufferedContainer;
+import jackdaw.game.container.DrawProvider;
 import jackdaw.game.container.button.Button;
 import jackdaw.game.container.button.SellButton;
-import jackdaw.game.player.MatStack;
+import jackdaw.game.resources.MatStack;
 import jackdaw.game.resources.Material;
 
 import java.awt.*;
-import java.util.ArrayList;
 
 public class InventoryContainer extends BufferedContainer {
     private final Level level;
     private final Font font = new Font(Font.MONOSPACED, Font.ITALIC | Font.BOLD, Window.getGameScale(32));
-    private final ArrayList<Button> buttons = new ArrayList<>();
     private final int generalOffset = Window.getGameScale(10);
 
     public InventoryContainer(Level level, int width, int height) {
@@ -29,17 +29,17 @@ public class InventoryContainer extends BufferedContainer {
                         MatStack pay = new MatStack(sell.material, 4);
                         if (level.player.canPay(pay)) {
                             level.player.substractWith(pay);
-                            level.player.collect(Material.GOLD);
+                            level.player.collect(Material.GOLD,1);
                         }
                     }
                 }));
 
                 buttons.add(new SellButton(getWidth() - font.getSize() * 2, y + generalOffset, value, b -> {
                     if (b instanceof SellButton sell) {
-                        MatStack pay = new MatStack(Material.GOLD, 4);
+                        MatStack pay = new MatStack(Material.GOLD, 2); //TODO take values out of trade bonuses
                         if (level.player.canPay(pay)) {
                             level.player.substractWith(pay);
-                            level.player.collect(sell.material);
+                            level.player.collect(sell.material,1);
                         }
                     }
                 }));

@@ -1,7 +1,9 @@
-package jackdaw.game.container;
+package jackdaw.game.container.gui;
 
 import framework.GameState;
 import framework.window.Window;
+import jackdaw.game.container.BufferedContainer;
+import jackdaw.game.container.DrawProvider;
 
 import java.awt.*;
 

@@ -1,8 +1,13 @@
-package jackdaw.game.plane;
+package jackdaw.game.map;
 
+import java.awt.*;
 import java.util.Objects;
 
 public record Coord(double posX, double posY) {
+
+    public Coord(Point point) {
+        this(point.x, point.y);
+    }
 
     public int getPosX() {
         return (int) posX;

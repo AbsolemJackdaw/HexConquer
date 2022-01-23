@@ -1,20 +1,21 @@
-package jackdaw.game.plane;
+package jackdaw.game.map.level;
 
 import framework.window.Window;
 import jackdaw.game.Level;
 import jackdaw.game.TexLoader;
-import jackdaw.game.player.MatStack;
+import jackdaw.game.map.Coord;
+import jackdaw.game.map.Hover;
+import jackdaw.game.resources.MatStack;
 import jackdaw.game.resources.Material;
 
 import java.awt.*;
 import java.util.Objects;
 
-public class Road extends Element implements Buyable {
+public class Road extends PlaceableElement {
     private final Coord linkedNodeA, linkedNodeB;
     private Coord start, end;
     private Coord startB, endB;
-    private Shape road;
-    private boolean bought;
+    private Polygon road;
     private Direction direction = Direction.N;
 
     public Road(Level level, Coord start, Coord end, boolean horizontalRoad) {
@@ -70,15 +71,19 @@ public class Road extends Element implements Buyable {
             this.endB = new Coord(end.getPosX() + offXEnd - offset, end.getPosY() + offYEnd);
         }
 
-        this.road = getRoad();
+        this.road = createRoad();
     }
 
-    public Polygon getRoad() {
+    private Polygon createRoad() {
         Polygon road = new Polygon();
         road.addPoint(start.getPosX(), start.getPosY());
         road.addPoint(startB.getPosX(), startB.getPosY());
         road.addPoint(endB.getPosX(), endB.getPosY());
         road.addPoint(end.getPosX(), end.getPosY());
+        return road;
+    }
+
+    public Polygon getRoad() {
         return road;
     }
 
@@ -110,7 +115,7 @@ public class Road extends Element implements Buyable {
                     offY = -(int) Level.bone / 2;
                 }
             }
-            g.setClip(getRoad());
+            g.setClip(createRoad());
             g.drawImage(TexLoader.ROAD, getPosition().getPosX() - (int) Level.bone + offX, getPosition().getPosY() + offY - (int) Level.bone / 2, (int) Level.bone, (int) Level.bone, null);
             g.setClip(0, 0, Window.getWidth(), Window.getHeight());
 
@@ -139,14 +144,15 @@ public class Road extends Element implements Buyable {
         level.getPlayerByName(buyer).ifPresent(player -> {
             if (player.canPay(cost()) && !bought) {
                 //if a node connects with a city, or doesn't set road and opposite node as connected
-                if (level.isCityBuild(linkedNodeA) || level.getCitySpot(linkedNodeA).connectsWithRoad()) {
-                    level.getCitySpot(linkedNodeB).attachRoad(buyer);
+                if (canBuyCheckNodeA()) {
+                    level.getCitySpot(linkedNodeB).attachRoad();
                     bought = true;
-                } else if (level.isCityBuild(linkedNodeB) || level.getCitySpot(linkedNodeB).connectsWithRoad()) {
-                    level.getCitySpot(linkedNodeA).attachRoad(buyer);
+                } else if (canBuyCheckNodeB()) {
+                    level.getCitySpot(linkedNodeA).attachRoad();
                     bought = true;
                 }
                 if (bought) {
+                    this.setOwner(buyer);
                     for (MatStack matStack : cost()) {
                         player.substractWith(matStack);
                     }
@@ -163,13 +169,35 @@ public class Road extends Element implements Buyable {
         return linkedNodeB;
     }
 
-    public boolean isBought() {
-        return bought;
-    }
 
     @Override
     public MatStack[] cost() {
         return new MatStack[]{new MatStack(Material.CLAY, 2), new MatStack(Material.WOOD, 2)};
+    }
+
+    private boolean canBuyCheckNodeA() {
+        return level.isCityBuild(linkedNodeA) || level.getCitySpot(linkedNodeA).connectsWithRoad();
+    }
+
+    private boolean canBuyCheckNodeB() {
+        return level.isCityBuild(linkedNodeB) || level.getCitySpot(linkedNodeB).connectsWithRoad();
+    }
+
+    @Override
+    public boolean canBuy() {
+        return canBuyCheckNodeA() || canBuyCheckNodeB();
+    }
+
+    @Override
+    public Hover getHoverable(Coord coord) {
+        Hover theSuper = super.getHoverable(coord);
+        return new Hover(theSuper).withDraw(g -> {
+            if (!bought && canBuy()) {
+                g.setColor(new Color(114, 70, 25, 100));
+                g.fill(level.getRelativeShape(getRoad()));
+            }
+            theSuper.draw(g);
+        });
     }
 
     public enum Direction {

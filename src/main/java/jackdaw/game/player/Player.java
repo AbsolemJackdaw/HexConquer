@@ -1,26 +1,29 @@
 package jackdaw.game.player;
 
+import jackdaw.game.DayCycleEvent;
+import jackdaw.game.resources.MatStack;
 import jackdaw.game.resources.Material;
 
 public class Player {
 
     private MatStack[] inventory = new MatStack[Material.values().length];
+    private DayCycleEvent.NOONEVENTS currentNoonEvent = DayCycleEvent.NOONEVENTS.NONE;
 
     public Player() {
         for (Material mat : Material.values()) {
             if (mat != Material.GOLD)
-                addWith(new MatStack(mat, 5));
+                addWith(new MatStack(mat, 15));
         }
     }
 
-    public void collect(Material mat) {
+    public void collect(Material mat, int amount) {
         if (mat == null) // empty plains exist
             return;
         int index = mat.ordinal();
         if (inventory[index] != null)
-            inventory[index].merge(new MatStack(mat, 1));
+            inventory[index].merge(new MatStack(mat, amount));
         else
-            inventory[index] = new MatStack(mat, 1);
+            inventory[index] = new MatStack(mat, amount);
     }
 
     public void updateWith(MatStack stack, boolean add) {
@@ -54,9 +57,9 @@ public class Player {
         if (cost != null)
             for (MatStack payement : cost) {
                 if (payement != null) {
-                    MatStack slotStack = getStackInSlot(payement.mat);
+                    MatStack slotStack = getStackInSlot(payement.getMat());
                     if (slotStack != null) {
-                        if (slotStack.ammount >= payement.ammount) {
+                        if (slotStack.getAmmount() >= payement.getAmmount()) {
                             hits++;
                         }
                     }
@@ -67,5 +70,13 @@ public class Player {
 
     public MatStack getStackInSlot(Material mat) {
         return inventory[mat.ordinal()];
+    }
+
+    public DayCycleEvent.NOONEVENTS getCurrentNoonEvent() {
+        return currentNoonEvent;
+    }
+
+    public void setCurrentNoonEvent(DayCycleEvent.NOONEVENTS currentNoonEvent) {
+        this.currentNoonEvent = currentNoonEvent;
     }
 }

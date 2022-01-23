@@ -1,9 +1,12 @@
-package jackdaw.game.plane;
+package jackdaw.game.map.level;
 
 import framework.window.Window;
 import jackdaw.game.Level;
 import jackdaw.game.TexLoader;
+import jackdaw.game.map.Coord;
+import jackdaw.game.map.Element;
 import jackdaw.game.resources.Material;
+import jackdaw.game.resources.PlainType;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -15,7 +18,7 @@ public class PlainHex extends Element {
     //store all six corner points to be used as intersections in the world map
     private ArrayList<Coord> corners = new ArrayList<>();
     private ArrayList<Road> roads = new ArrayList<>();
-    private ArrayList<String> owners = new ArrayList<>();
+    private ArrayList<CitySpot> trackingCities = new ArrayList<>();
 
     public PlainHex(Level level, PlainType plainType, double posX, double posY) {
         super(level, posX, posY);
@@ -53,14 +56,14 @@ public class PlainHex extends Element {
         if (plainType != null) {
             g.setClip(hex);
             BufferedImage img = switch (plainType) {
-                case PLAINS -> TexLoader.PLAINS;
-                case WOODS -> TexLoader.WOODS;
-                case MOUNTAINS -> TexLoader.MOUNTAINS;
-                case FIELDS -> TexLoader.FIELDS;
-                case PITS -> TexLoader.PITS;
-                case RIVERS -> TexLoader.RIVER;
-                case EMPTY -> TexLoader.EMPTY;
-                case WATER -> TexLoader.WATER;
+                case PLAINS -> TexLoader.PLAIN_HEX;
+                case WOODS -> TexLoader.WOOD_HEX;
+                case MOUNTAINS -> TexLoader.MOUNTAIN_HEX;
+                case FIELDS -> TexLoader.FIELD_HEX;
+                case PITS -> TexLoader.PIT_HEX;
+                case RIVERS -> TexLoader.RIVER_HEX;
+                case EMPTY -> TexLoader.EMPTY_HEX;
+                case WATER -> TexLoader.WATER_HEX;
             };
             if (img != null)
                 g.drawImage(img, getPosition().getPosX() - (int) Level.bone, getPosition().getPosY() - (int) Level.bone, (int) Level.bone * 2, (int) Level.bone * 2, null);
@@ -95,12 +98,12 @@ public class PlainHex extends Element {
         return hex;
     }
 
-    public void addOwner(String owner) {
-        owners.add(owner);
+    public void trackCity(CitySpot node) {
+        trackingCities.add(node);
     }
 
-    public ArrayList<String> getOwners() {
-        return owners;
+    public ArrayList<CitySpot> getTrackingCities() {
+        return trackingCities;
     }
 
     public Material getMaterial() {
