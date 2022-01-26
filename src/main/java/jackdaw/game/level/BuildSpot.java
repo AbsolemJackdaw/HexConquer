@@ -1,4 +1,4 @@
-package jackdaw.game.map.level;
+package jackdaw.game.level;
 
 import framework.window.Window;
 import jackdaw.game.DayCycleEvent;
@@ -6,9 +6,10 @@ import jackdaw.game.Level;
 import jackdaw.game.TexLoader;
 import jackdaw.game.container.BufferedContainer;
 import jackdaw.game.container.gui.CityGui;
-import jackdaw.game.map.Coord;
-import jackdaw.game.map.GuiAble;
-import jackdaw.game.map.Hover;
+import jackdaw.game.level.map.Coord;
+import jackdaw.game.level.map.GuiAble;
+import jackdaw.game.level.map.Hover;
+import jackdaw.game.level.upgrades.Upgrade;
 import jackdaw.game.player.Player;
 import jackdaw.game.resources.MatStack;
 import jackdaw.game.resources.Material;
@@ -16,18 +17,20 @@ import jackdaw.game.resources.Material;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
-public class CitySpot extends PlaceableElement implements GuiAble {
+public class BuildSpot extends PlaceableElement implements GuiAble {
     public final Rectangle imageSpace;
     private final Shape boundingBox;
+    private final Upgrade[] upgrades = new Upgrade[4];
+    private final ArrayList<Material> farms = new ArrayList<>();
     private boolean hasBuildRoadNode;
     private boolean isCity = false;
+    private DayCycleEvent.Event currentDayEvent = DayCycleEvent.Event.NONE;
 
-    private DayCycleEvent.DAWNEVENTS currentDayEvent = DayCycleEvent.DAWNEVENTS.NONE;
-
-    public CitySpot(Level level, Coord coord) {
+    public BuildSpot(Level level, Coord coord) {
         super(level, coord);
         int size = (int) (15 * Window.getScale());
         boundingBox = new Ellipse2D.Double(coord.posX() - size / 2f, coord.posY() - size / 2f, size, size);
@@ -35,9 +38,13 @@ public class CitySpot extends PlaceableElement implements GuiAble {
         imageSpace = new Rectangle(getPosition().posX() - (int) (size * 2.5), (int) (getPosition().posY() - size * 3.0), size * 5, size * 5);
     }
 
+    public void addTrackingHex(PlainHex hex) {
+        farms.add(hex.getMaterial());
+    }
+
     @Override
     public boolean equals(Object o) {
-        return o instanceof CitySpot node && node.getPosition().equals(getPosition());
+        return o instanceof BuildSpot node && node.getPosition().equals(getPosition());
     }
 
     @Override
@@ -56,23 +63,20 @@ public class CitySpot extends PlaceableElement implements GuiAble {
     }
 
     @Override
-    public void buy(String buyer) {
+    public void buy(Player player) {
         if (canBuy()) {
-            level.getPlayerByName(buyer).ifPresent(player -> {
-                if (player.canPay(cost())) {
-                    purchasePlot(player);
-                    for (MatStack matStack : cost()) {
-                        player.substractWith(matStack);
-                    }
+            if (player.canPay(cost())) {
+                purchasePlot(player);
+                for (MatStack matStack : cost()) {
+                    player.substractWith(matStack);
                 }
-            });
+            }
         }
     }
 
     public void purchasePlot(Player buyer) {
         bought = true;
-        level.exploitSurrounds(this);
-        this.setOwner(buyer.getName());
+        this.setOwner(buyer);
     }
 
     @Override
@@ -82,22 +86,22 @@ public class CitySpot extends PlaceableElement implements GuiAble {
             BufferedImage img = isCity ? TexLoader.CITY : TexLoader.VILLAGE;
             g.drawImage(img, imageSpace.x, imageSpace.y, imageSpace.width, imageSpace.height, null);
 
-            switch (currentDayEvent) {
-                case GOODYEAR -> g.drawImage(TexLoader.GOODYEAR, imageSpace.x + imageSpace.width / 4, imageSpace.y, imageSpace.width / 2, imageSpace.height / 2, null);
-                case BLACKDEATH -> g.drawImage(TexLoader.BADYEAR, imageSpace.x + imageSpace.width / 4, imageSpace.y, imageSpace.width / 2, imageSpace.height / 2, null);
-            }
-
+            BufferedImage tex = switch (currentDayEvent) {
+                case GOODYEAR -> TexLoader.GOODYEAR;
+                case PESTILENCE -> TexLoader.BADYEAR;
+                case RODENTS -> TexLoader.RODENTS;
+                case ROBBERS -> TexLoader.ROBBERS;
+                case COMMERCE -> TexLoader.COMMERCE;
+                default -> null;
+            };
+            if (tex != null)
+                g.drawImage(tex, imageSpace.x + imageSpace.width / 4, imageSpace.y, imageSpace.width / 2, imageSpace.height / 2, null);
         } else if (hasBuildRoadNode) {
             g.setColor(Color.DARK_GRAY);
             g.setClip(getBoundingBox());
             g.fill(getBoundingBox());
         }
         g.setClip(Level.viewPort);
-
-//        g.setColor(Color.green);
-//        g.setClip(getBoundingBox());
-//        g.fill(getBoundingBox());
-//        g.setClip(Level.viewPort);
     }
 
     public void attachRoad() {
@@ -110,19 +114,19 @@ public class CitySpot extends PlaceableElement implements GuiAble {
 
     @Override
     public MatStack[] cost() {
-        return new MatStack[]{new MatStack(Material.METAL, 10), new MatStack(Material.WOOD, 10), new MatStack(Material.CLAY, 10)};
+        return new MatStack[]{new MatStack(Material.WOOL, 5), new MatStack(Material.WOOD, 7), new MatStack(Material.CLAY, 7)};
     }
 
     @Override
     public BufferedContainer getGui() {
         if (bought) {
-            CityGui gui = new CityGui(level, Level.viewPort.width - Window.getGameScale(100), Level.viewPort.height - Window.getGameScale(100));
+            CityGui gui = new CityGui(level, Level.viewPort.width - Window.getGameScale(100), Level.viewPort.height - Window.getGameScale(100), this);
             gui.setOrigin(Window.getGameScale(50), Window.getGameScale(50));
+            gui.init();
             return gui;
         }
         return null;
     }
-
 
     @Override
     public boolean canBuy() {
@@ -154,21 +158,59 @@ public class CitySpot extends PlaceableElement implements GuiAble {
         });
     }
 
-    //TODO upgrades for cities
-    public int getResourceMultiplier(Material material) {
-
-        return switch (material) {
-            //TODO double when upgraded
-            //TODO double with upgrades
-            default -> 1;
-        };
-    }
-
-    public void setCurrentDayEvent(DayCycleEvent.DAWNEVENTS currentDayEvent) {
+    public void setCurrentDayEvent(DayCycleEvent.Event currentDayEvent) {
         this.currentDayEvent = currentDayEvent;
     }
 
     public void upgrade() {
         isCity = true;
+    }
+
+    public int getBonusMultiplier(Material material) {
+        int i = isCity ? 2 : 1;
+        for (Upgrade upgrade : upgrades) {
+            if (upgrade != null)
+                i += upgrade.resourceBonusMultiplier(material);
+        }
+        return i;
+    }
+
+    public boolean isResistant(DayCycleEvent.Event event) {
+        boolean flag = false;
+        for (Upgrade upgrade : upgrades) {
+            if (upgrade != null)
+                if (upgrade.resists().equals(event))
+                    flag = true;
+        }
+        return event != DayCycleEvent.Event.NONE && flag;
+    }
+
+    public ArrayList<Material> getFields() {
+        return farms;
+    }
+
+    public boolean isCity() {
+        return isCity;
+    }
+
+    public Upgrade[] getUpgrades() {
+        return upgrades;
+    }
+
+    public boolean canAddUpgrade() {
+        for (int i = 0; i < (isCity ? upgrades.length : upgrades.length / 2); i++) {
+            if (upgrades[i] == null)
+                return true;
+        }
+        return false;
+    }
+
+    public void addUpgrade(Upgrade upgrade) {
+        for (int i = 0; i < upgrades.length; i++) {
+            if (upgrades[i] == null) {
+                upgrades[i] = upgrade;
+                return;
+            }
+        }
     }
 }

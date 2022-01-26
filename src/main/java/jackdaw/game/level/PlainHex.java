@@ -1,22 +1,18 @@
-package jackdaw.game.map.level;
+package jackdaw.game.level;
 
 import jackdaw.game.Level;
 import jackdaw.game.TexLoader;
-import jackdaw.game.map.Coord;
-import jackdaw.game.map.Element;
+import jackdaw.game.level.map.Coord;
+import jackdaw.game.level.map.Element;
 import jackdaw.game.resources.Material;
 import jackdaw.game.resources.PlainType;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 
 public class PlainHex extends Element {
     private final PlainType plainType;
-    //cities to receive updates from these fields. mostly for resource purposes.
-    private final ArrayList<CitySpot> trackingCities = new ArrayList<>();
     private Polygon hex;
-
 
     public PlainHex(Level level, PlainType plainType, Coord coord) {
         super(level, coord);
@@ -24,13 +20,6 @@ public class PlainHex extends Element {
             throw new NullPointerException("plain type for a Hex cannot be null");
 
         this.plainType = plainType;
-//        hex = new Polygon();
-//        for (int i = 0; i < 6; i++) {
-//
-//            hex.addPoint(cornerCoord.posX(), cornerCoord.posY());
-//            if (this.plainType != PlainType.WATER)
-//                corners.add(cornerCoord);
-//        }
     }
 
     /**
@@ -71,14 +60,6 @@ public class PlainHex extends Element {
         return hex;
     }
 
-    public void trackCity(CitySpot node) {
-        trackingCities.add(node);
-    }
-
-    public ArrayList<CitySpot> getTrackingCities() {
-        return trackingCities;
-    }
-
     public Material getMaterial() {
         return switch (plainType) {
             case WOODS -> Material.WOOD;
@@ -90,4 +71,5 @@ public class PlainHex extends Element {
             case EMPTY, WATER -> Material.NONE;
         };
     }
+
 }

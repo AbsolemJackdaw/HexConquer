@@ -1,4 +1,4 @@
-package jackdaw.game.map;
+package jackdaw.game.level.map;
 
 import jackdaw.game.container.BufferedContainer;
 

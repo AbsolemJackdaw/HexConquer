@@ -1,7 +1,7 @@
-package jackdaw.game.map.level;
+package jackdaw.game.level;
 
 import jackdaw.game.Level;
-import jackdaw.game.map.*;
+import jackdaw.game.level.map.*;
 
 public abstract class PlaceableElement extends Element implements Buyable, Hoverable {
 

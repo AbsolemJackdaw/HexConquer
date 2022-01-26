@@ -41,6 +41,8 @@ public class TexLoader extends LoadState {
     public static BufferedImage GOODYEAR;
     public static BufferedImage BADYEAR;
 
+    public static BufferedImage TEST;
+
 
     public TexLoader(GameStateHandler gsh) {
         super(gsh);
@@ -82,6 +84,8 @@ public class TexLoader extends LoadState {
 
         GOODYEAR = ImageLoader.loadSprite(new ResourceLocation("/jackdaw/events/good_year.png"));
         BADYEAR = ImageLoader.loadSprite(new ResourceLocation("/jackdaw/events/black_death.png"));
+
+        TEST = ImageLoader.loadSprite(new ResourceLocation("/jackdaw/upgrades/test.png"));
 
     }
 

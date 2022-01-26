@@ -1,11 +1,11 @@
-package jackdaw.game.map;
+package jackdaw.game.level.map;
 
+import java.awt.*;
 import java.util.Objects;
 
-public class Coord implements Comparable<Coord> {
+public class Coord {
 
     private final int posX, posY;
-    private Coord originToCompare;
 
     public Coord(int posX, int posY) {
         this.posX = posX;
@@ -43,24 +43,30 @@ public class Coord implements Comparable<Coord> {
     }
 
     /**
-     * use compareTo(origin, comparing) intsead
+     * returns 1 or -1 depending on where the coord is positioned regarding the origin.
+     * useful to obtain values clock wise from a value, mostly to construct shapes from
      */
-    @Override
-    @Deprecated
-    public int compareTo(Coord o) {
-        if (originToCompare == null)
+    public int compareTo(Coord origin, Coord comparing) {
+        if (origin == null)
             return 0;
 
         int compared = 0;
-        double angleA = Math.atan2(this.posY - originToCompare.posY, this.posX - originToCompare.posX);
-        double angleB = Math.atan2(o.posY - originToCompare.posY, o.posX - originToCompare.posX);
+        double angleA = Math.atan2(this.posY - origin.posY, this.posX - origin.posX);
+        double angleB = Math.atan2(comparing.posY - origin.posY, comparing.posX - origin.posX);
         compared = Double.compare(angleB, angleA);
-        originToCompare = null; // reset so the next check doesnt compare to an old value
         return compared;
     }
 
-    public int compareTo(Coord origin, Coord comparing) {
-        this.originToCompare = origin;
-        return compareTo(comparing);
+    /**
+     * returns the euclidean distance to the given point from the instance this is called on
+     */
+    public int distanceTo(Coord o) {
+        int x = posX - o.posX;
+        int y = posY - o.posY;
+        return (int) Math.round(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
+    }
+
+    public Point point(){
+        return new Point(posX,posY);
     }
 }

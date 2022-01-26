@@ -1,10 +1,11 @@
-package jackdaw.game.map.level;
+package jackdaw.game.level;
 
 import framework.window.Window;
 import jackdaw.game.Level;
 import jackdaw.game.TexLoader;
-import jackdaw.game.map.Coord;
-import jackdaw.game.map.Hover;
+import jackdaw.game.level.map.Coord;
+import jackdaw.game.level.map.Hover;
+import jackdaw.game.player.Player;
 import jackdaw.game.resources.MatStack;
 import jackdaw.game.resources.Material;
 
@@ -140,26 +141,24 @@ public class Road extends PlaceableElement {
     }
 
     @Override
-    public void buy(String buyer) {
+    public void buy(Player player) {
 
-        level.getPlayerByName(buyer).ifPresent(player -> {
-            if (player.canPay(cost()) && !bought) {
-                //if a node connects with a city, or doesn't: set road and opposite node as connected
-                if (canBuyCheckNodeA()) {
-                    level.getCitySpot(linkedNodeB).attachRoad();
-                    bought = true;
-                } else if (canBuyCheckNodeB()) {
-                    level.getCitySpot(linkedNodeA).attachRoad();
-                    bought = true;
-                }
-                if (bought) {
-                    this.setOwner(buyer);
-                    for (MatStack matStack : cost()) {
-                        player.substractWith(matStack);
-                    }
+        if (player.canPay(cost()) && !bought) {
+            //if a node connects with a city, or doesn't: set road and opposite node as connected
+            if (canBuyCheckNodeA()) {
+                level.getCitySpot(linkedNodeB).attachRoad();
+                bought = true;
+            } else if (canBuyCheckNodeB()) {
+                level.getCitySpot(linkedNodeA).attachRoad();
+                bought = true;
+            }
+            if (bought) {
+                this.setOwner(player);
+                for (MatStack matStack : cost()) {
+                    player.substractWith(matStack);
                 }
             }
-        });
+        }
     }
 
     public Coord getLinkedNodeA() {

@@ -1,13 +1,14 @@
-package jackdaw.game.map;
+package jackdaw.game.level.map;
 
 import jackdaw.game.Level;
+import jackdaw.game.player.Player;
 
 import java.awt.*;
 
-public abstract class Element {
+public abstract class Element implements Comparable<Element> {
     private final Coord absolutePosition;
     public Level level;
-    private String owner;
+    private Player owner;
 
     public Element(Level level, Coord coord) {
         this.level = level;
@@ -24,14 +25,19 @@ public abstract class Element {
         return absolutePosition;
     }
 
-    public String getOwner() {
+    public Player getOwner() {
         return owner;
     }
 
-    public void setOwner(String owner) {
-        if (owner != null && !owner.isEmpty() && !owner.isBlank())
+    public void setOwner(Player owner) {
+        if (owner != null)
             this.owner = owner;
         else
-            throw new IllegalArgumentException("player name cannot be emtpy or nihil !");
+            throw new IllegalArgumentException("player registered to city was null");
+    }
+
+    @Override
+    public int compareTo(Element o) {
+        return o.getPosition().equals(getPosition()) ? 0 : 1;
     }
 }

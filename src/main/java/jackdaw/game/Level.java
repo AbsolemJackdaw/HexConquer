@@ -8,10 +8,10 @@ import framework.window.Window;
 import jackdaw.game.container.BufferedContainer;
 import jackdaw.game.container.gui.InventoryContainer;
 import jackdaw.game.container.gui.MapContainer;
-import jackdaw.game.map.*;
-import jackdaw.game.map.level.CitySpot;
-import jackdaw.game.map.level.PlainHex;
-import jackdaw.game.map.level.Road;
+import jackdaw.game.level.BuildSpot;
+import jackdaw.game.level.PlainHex;
+import jackdaw.game.level.Road;
+import jackdaw.game.level.map.*;
 import jackdaw.game.noise.OpenSimplexNoise;
 import jackdaw.game.player.Player;
 import jackdaw.game.resources.Material;
@@ -20,11 +20,9 @@ import jackdaw.game.resources.PlainType;
 import java.awt.*;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Ellipse2D;
-import java.awt.image.BufferedImage;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Level extends GameState {
 
@@ -36,7 +34,7 @@ public class Level extends GameState {
     private final Ellipse2D clockPort = new Ellipse2D.Double(viewPort.width - Window.getGameScale(60), Window.getGameScale(10), Window.getGameScale(50), Window.getGameScale(50));
     private final Ellipse2D eventPort = new Ellipse2D.Double(viewPort.width - Window.getGameScale(110), Window.getGameScale(10), Window.getGameScale(50), Window.getGameScale(50));
     private final ArrayList<PlainHex> plains = new ArrayList<>();
-    private final ArrayList<CitySpot> cityNodes = new ArrayList<>();
+    private final ArrayList<BuildSpot> cityNodes = new ArrayList<>();
     private final ArrayList<Coord> allGeneratedNodes = new ArrayList<>();
     private final ArrayList<Road> roads = new ArrayList<>();
     private final ArrayList<ArrayList<? extends Element>> mapElements = new ArrayList<>();
@@ -46,7 +44,7 @@ public class Level extends GameState {
     public Player player = new Player("player");
     public double fieldSizeX = (gameFieldSize) * bone * 3;
     public double fieldSizeY = (gameFieldSize) * bone * 2;
-    protected OpenSimplexNoise NOISE;
+    protected OpenSimplexNoise NOISE;//never used
     private InventoryContainer inventory;
     private BufferedContainer currentGUI;
     private boolean hasOpenGui = false;
@@ -114,28 +112,36 @@ public class Level extends GameState {
         }
 
         for (PlainHex plain : plains) {
-            Ellipse2D collectionRadius = new Ellipse2D.Double(plain.getPosition().posX() - bone * 1.25, plain.getPosition().posY() - bone * 1.25, bone * 2.5, bone * 2.5);
-            List<Coord> surroundingNodes = allGeneratedNodes.stream().filter(citySpot -> collectionRadius.contains(citySpot.posX(), citySpot.posY())).sorted((o1, o2) -> o1.compareTo(plain.getPosition(), o2)).collect(Collectors.toList());
+            List<Coord> surroundingNodes = allGeneratedNodes.stream().filter(coord ->
+                    coord.distanceTo(plain.getPosition()) < 200).sorted((o1, o2) ->
+                    o1.compareTo(plain.getPosition(), o2)).toList();
             //create bounding box of planes with the unique coordinates of the nodes
             if (surroundingNodes.size() != 6)
                 throw new IllegalStateException("detected nodes where more or less then 6.");
             Polygon hex = new Polygon();
             //while we're looping all nodes, make a copy for cities and determine roads
-            Coord roadNodeA = surroundingNodes.get(5);
-            for (int i = 0; i < 6; i++) {
-                Coord node = surroundingNodes.get(i); // note at first position
-                hex.addPoint(node.posX(), node.posY());//add point to polygon
+            Coord roadNodePrev = surroundingNodes.get(5);
+            for (Coord roadNode : surroundingNodes) {
+                hex.addPoint(roadNode.posX(), roadNode.posY());//add point to polygon
                 if (plain.getMaterial() != Material.NONE) {//if the plain isnt water or a desert, add roads and a city point
                     //create node from first position
-                    //make node from previous position and this pos
-                    Road road = new Road(this, roadNodeA, node);
+                    //make road from previous position and this pos
+                    Road road = new Road(this, roadNodePrev, roadNode);
                     if (!roads.contains(road)) // check on doubles. we're collecting nodes from a center point and will have doubles
                         roads.add(road);
                     //Set the previous position to this position
-                    roadNodeA = node;
-                    CitySpot city = new CitySpot(this, node);
+                    roadNodePrev = roadNode;
+                    BuildSpot city = new BuildSpot(this, roadNode);
                     if (!cityNodes.contains(city))// check on doubles. we're collecting nodes from a center point and will have doubles
+                    {
+                        city.addTrackingHex(plain);
                         cityNodes.add(city);
+                    } else //update city with new hex
+                    {
+                        city = cityNodes.get(cityNodes.indexOf(city));
+                        city.addTrackingHex(plain);
+                        cityNodes.set(cityNodes.indexOf(city), city);
+                    }
                 }
             }
             plain.createHex(hex);
@@ -146,14 +152,15 @@ public class Level extends GameState {
         mapElements.add(cityNodes);
 
         //init two starter cities
-        CitySpot startCity = cityNodes.get(rand.nextInt(cityNodes.size()));
+        BuildSpot startCity = cityNodes.get(rand.nextInt(cityNodes.size()));
 
-        Optional<CitySpot> secondCity =
-                cityNodes.stream().filter(citySpot ->
-                        !citySpot.getBoundingBox().intersects(startCity.getPosition().posX() - 1.1 * bone, startCity.getPosition().posY() - 1.1 * bone, 2.2 * bone, 2.2 * bone) && (
-                                citySpot.getBoundingBox().intersects(startCity.getPosition().posX() - 1.6 * bone, startCity.getPosition().posY() - 1.6 * bone, 3.2 * bone, 3.2 * bone) ||
-                                        citySpot.getBoundingBox().intersects(startCity.getPosition().posX() - 0.6 * bone, startCity.getPosition().posY() - 2.1 * bone, bone * 1.2, 4.2 * bone))
-                ).reduce((citySpot, citySpot2) -> rand.nextBoolean() ? citySpot : citySpot2);
+        Optional<BuildSpot> secondCity =
+                cityNodes.stream().filter(buildSpot -> {
+                            int i = startCity.getPosition().distanceTo(buildSpot.getPosition());
+                            return i > Window.getGameScale(100) && i < Window.getGameScale(200);
+                        }
+                ).reduce((buildSpot, buildSpot2) -> rand.nextBoolean() ? buildSpot : buildSpot2);
+
         startCity.purchasePlot(player);
         System.out.println("first spot coords are " + startCity.getPosition());
         secondCity.ifPresent(secondSpot -> {
@@ -163,11 +170,10 @@ public class Level extends GameState {
             if (!starter.isEmpty()) {
                 for (int d = 0; d < starter.size(); d++) {
                     Road a = starter.get(d);
-                    for (int i = 0; i < starter.size(); i++) {
-                        Road b = starter.get(i);
+                    for (Road b : starter) {
                         if (a.shareUnbuildPoint(b)) {
-                            a.buy(player.getName());
-                            b.buy(player.getName());
+                            a.buy(player);
+                            b.buy(player);
                             break;
                         }
                     }
@@ -185,8 +191,7 @@ public class Level extends GameState {
         inventory = new InventoryContainer(this, Window.getWidth() / 3, Window.getHeight());
 
         player.initInventory();
-        for (int i = 0; i < 2; i++) //aid player inventory with some resources his city surrounds
-            dayCycleEvent.rollDay(this, plains);
+        dayCycleEvent.startingCapital(this);
 
     }
 
@@ -220,16 +225,6 @@ public class Level extends GameState {
         g.setColor(Color.black.brighter());
         g.setClip(clockPort);
         g.drawImage(TexLoader.CLOCK, (int) clockPort.getX(), (int) clockPort.getY(), (int) clockPort.getWidth(), (int) clockPort.getHeight(), null);
-        if (player.getCurrentNoonEvent() != DayCycleEvent.NOONEVENTS.NONE) {
-            g.setClip(eventPort);
-            BufferedImage eventImg = switch (player.getCurrentNoonEvent()) {
-                case COMMERCE -> TexLoader.COMMERCE;
-                case ROBBERS -> TexLoader.ROBBERS;
-                case RODENTS -> TexLoader.RODENTS;
-                default -> TexLoader.BADYEAR; //default for ease of using switch. none isnt included anyway
-            };
-            g.drawImage(eventImg, (int) eventPort.getX(), (int) eventPort.getY(), (int) eventPort.getWidth(), (int) eventPort.getHeight(), null);
-        }
         g.setClip(viewPort);
 
         g.setColor(Color.red.darker());
@@ -260,7 +255,7 @@ public class Level extends GameState {
                         forEach(element -> {
                             if (element instanceof Buyable buyable) {
                                 if (!buyable.isBought()) {
-                                    buyable.buy("player");
+                                    buyable.buy(player);
                                     return;
                                 }
                             }
@@ -297,7 +292,7 @@ public class Level extends GameState {
         }
     }
 
-    public Collection<Road> nodeRoads(CitySpot node) {
+    public Collection<Road> nodeRoads(BuildSpot node) {
         Collection<Road> coll = new ArrayList<>();
         for (Road road : roads) {
             if (road.getLinkedNodeB().equals(node.getPosition()) || road.getLinkedNodeA().equals(node.getPosition())) {
@@ -308,7 +303,7 @@ public class Level extends GameState {
     }
 
     public boolean isCityBuild(Coord coord) {
-        for (CitySpot node : cityNodes) {
+        for (BuildSpot node : cityNodes) {
             if (node.getPosition().equals(coord)) {
                 return node.isBought();
             }
@@ -316,8 +311,8 @@ public class Level extends GameState {
         return false;
     }
 
-    public CitySpot getCitySpot(Coord coord) {
-        for (CitySpot city : cityNodes) {
+    public BuildSpot getCitySpot(Coord coord) {
+        for (BuildSpot city : cityNodes) {
             if (city.getPosition().equals(coord))
                 return city;
         }
@@ -339,14 +334,6 @@ public class Level extends GameState {
     public void openGui(BufferedContainer gui) {
         this.hasOpenGui = true;
         this.currentGUI = gui;
-    }
-
-    public void exploitSurrounds(CitySpot city) {
-        plains.forEach(plainHex -> {
-            if (city.getBoundingBox().intersects(plainHex.getBoundingBox().getBounds())) {
-                plainHex.trackCity(city);
-            }
-        });
     }
 
     public Optional<Player> getPlayerByName(String name) {
@@ -387,7 +374,7 @@ public class Level extends GameState {
     }
 
     private void nextDay() {
-        dayCycleEvent.rollDay(this, plains);
+        dayCycleEvent.rollDay(this);
 
         LocalDateTime now = LocalDateTime.now();
         int hour = now.getHour();
@@ -398,5 +385,9 @@ public class Level extends GameState {
 
     public long getTimePassed() {
         return timePassed;
+    }
+
+    public ArrayList<BuildSpot> getCityNodes() {
+        return cityNodes;
     }
 }

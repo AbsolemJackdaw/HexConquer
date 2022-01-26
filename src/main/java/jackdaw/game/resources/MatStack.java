@@ -1,5 +1,6 @@
 package jackdaw.game.resources;
 
+import jackdaw.game.container.BufferedContainer;
 import jackdaw.game.container.DrawProvider;
 
 public class MatStack {
@@ -45,8 +46,8 @@ public class MatStack {
     public DrawProvider draw(int x, int y, int size) {
         return g ->
         {
-            for (int i = 0; i < ammount; i++)
-                g.drawImage(mat.texture, (int) (5 + x + size / 1.2d * i), y, size, size, null);
+            g.drawImage(mat.texture, (int) (5 + x ), y, size, size, null);
+            g.drawString("x" + ammount, (int) (5 + x ) + size, y+ BufferedContainer.FONT.getSize());
         };
     }
 }

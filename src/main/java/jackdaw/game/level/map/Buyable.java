@@ -1,11 +1,12 @@
-package jackdaw.game.map;
+package jackdaw.game.level.map;
 
+import jackdaw.game.player.Player;
 import jackdaw.game.resources.MatStack;
 
 public interface Buyable {
     MatStack[] cost();
 
-    void buy(String owner);
+    void buy(Player owner);
 
     boolean isBought();
 

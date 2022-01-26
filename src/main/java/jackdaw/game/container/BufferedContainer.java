@@ -1,6 +1,7 @@
 package jackdaw.game.container;
 
 import framework.GameState;
+import framework.window.Window;
 import jackdaw.game.container.button.Button;
 
 import java.awt.*;
@@ -10,6 +11,7 @@ import java.util.Random;
 
 public abstract class BufferedContainer extends BufferedImage {
 
+    public static final Font FONT = new Font(Font.MONOSPACED, Font.ITALIC | Font.BOLD, Window.getGameScale(32));
     static final Random rand = new Random();
     protected final GameState state; //the gamestate this container is in;
     public double originX, originY;

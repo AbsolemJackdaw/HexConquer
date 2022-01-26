@@ -1,14 +1,20 @@
 package jackdaw.game.player;
 
-import jackdaw.game.DayCycleEvent;
+import jackdaw.game.level.upgrades.Upgrade;
 import jackdaw.game.resources.MatStack;
 import jackdaw.game.resources.Material;
 
+import java.awt.*;
+import java.util.Set;
+import java.util.TreeSet;
+
 public class Player {
 
+    //    public ArrayList<Upgrade> availableUpgrades = new ArrayList<>();
     private MatStack[] inventory = new MatStack[Material.values().length];
-    private DayCycleEvent.NOONEVENTS currentNoonEvent = DayCycleEvent.NOONEVENTS.NONE;
     private String name;
+    private Upgrade[][] availableUpgrades = new Upgrade[5][2];
+    private Set<Integer> markedUpgradesRemoval = new TreeSet<>();
 
     public Player(String name) {
         this.name = name;
@@ -20,14 +26,10 @@ public class Player {
 
     public void initInventory() {
         inventory = new MatStack[Material.values().length];
-        for (Material mat : Material.values()) {
-            if (mat.isSellable())
-                addWith(new MatStack(mat, 5));
-        }
     }
 
     public void collect(Material mat, int amount) {
-        if (mat == null) // empty plains exist
+        if (mat == Material.NONE) // empty plains exist
             return;
         int index = mat.ordinal();
         if (inventory[index] != null)
@@ -82,15 +84,55 @@ public class Player {
         return inventory[mat.ordinal()];
     }
 
-    public DayCycleEvent.NOONEVENTS getCurrentNoonEvent() {
-        return currentNoonEvent;
-    }
-
-    public void setCurrentNoonEvent(DayCycleEvent.NOONEVENTS currentNoonEvent) {
-        this.currentNoonEvent = currentNoonEvent;
-    }
-
     public String getName() {
         return name;
+    }
+
+    public void addUpgrade(Upgrade upgrade) {
+        if (canAddUpgrade()) {
+            addInNextFreeSlot(upgrade);
+        }
+    }
+
+    public boolean canAddUpgrade() {
+        for (int i = 0; i < upgradeInventorySize(); i++) {
+            if (availableUpgrades[arrayIndex(i).x][arrayIndex(i).y] == null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void addInNextFreeSlot(Upgrade upgrade) {
+        int slot = 0;
+        for (int i = 0; i < upgradeInventorySize(); i++) {
+            if (availableUpgrades[arrayIndex(i).x][arrayIndex(i).y] == null) {
+                addUpgrade(upgrade, slot);
+                return;
+            }
+            slot++;
+        }
+    }
+
+    public Upgrade getUpgrade(int index) {
+        return availableUpgrades[arrayIndex(index).x][arrayIndex(index).y];
+    }
+
+    public void addUpgrade(Upgrade u, int index) {
+        availableUpgrades[arrayIndex(index).x][arrayIndex(index).y] = u;
+    }
+
+    public Point arrayIndex(int index) {
+        int x = index >= 5 ? index - 5 : index;
+        int y = index / 5;
+        return new Point(x, y);
+    }
+
+    public int upgradeInventorySize() {
+        return availableUpgrades.length * availableUpgrades[0].length;
+    }
+
+    public void removeUpgrade(int index) {
+        availableUpgrades[arrayIndex(index).x][arrayIndex(index).y] = null;
     }
 }

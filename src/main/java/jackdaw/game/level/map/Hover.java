@@ -1,13 +1,12 @@
-package jackdaw.game.map;
+package jackdaw.game.level.map;
 
 import framework.window.Window;
 import jackdaw.game.TexLoader;
+import jackdaw.game.container.BufferedContainer;
 import jackdaw.game.container.DrawProvider;
 import jackdaw.game.resources.MatStack;
 
 import java.awt.*;
-import java.util.Arrays;
-import java.util.Optional;
 
 public class Hover {
     public static final Hover EMPTY = new Hover(new Coord(0, 0), 0, 0) {
@@ -35,11 +34,12 @@ public class Hover {
         if (!buyable.isBought()) {
             if (buyable.canBuy()) {
                 int size = Window.getGameScale(32);
-                Optional<MatStack> stack = Arrays.stream(buyable.cost()).reduce((matStack, matStack2) -> matStack.getAmmount() > matStack2.getAmmount() ? matStack : matStack2);
-                int width = stack.map(value -> value.getAmmount() * size).orElse(0);
+                int width = 3 * size;
                 return new Hover(coord, width, (buyable.cost().length) * size).withDraw(g -> {
                     int itt = 0;
                     for (MatStack matStack : buyable.cost()) {
+                        g.setFont(BufferedContainer.FONT);
+                        g.setColor(Color.white);
                         matStack.draw(coord.posX(), coord.posY() + (itt * size), size).draw(g);
                         itt++;
                     }
@@ -59,5 +59,4 @@ public class Hover {
         this.drawProvider = drawProvider;
         return this;
     }
-
 }
